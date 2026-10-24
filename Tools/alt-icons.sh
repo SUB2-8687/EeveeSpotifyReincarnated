@@ -11,6 +11,40 @@ SRC_DIR="$ROOT_DIR/Assets/AppIcon/sources"
 ICON_DIR="$ROOT_DIR/Assets/AppIcon"
 PB=/usr/libexec/PlistBuddy
 
+# iOS only accepts an alternate icon whose files have exact pixel sizes
+# (120/180 on iPhone, 152/76 on iPad); anything else makes
+# setAlternateIconName fail with "The file doesn't exist". So every variant is
+# always regenerated from sources/ (committed variants may be mis-sized and are
+# never trusted), then verified, and variants without a source are dropped.
+# sips only exists on macOS; fall back to ImageMagick / Pillow elsewhere.
+px() {
+    if command -v sips >/dev/null 2>&1; then
+        sips -g "$1" "$2" 2>/dev/null | awk -v k="$1" '$1==k":" {print $2}'
+    else
+        python3 - "$1" "$2" <<'PY'
+import sys
+from PIL import Image
+w, h = Image.open(sys.argv[2]).size
+print(w if sys.argv[1] == "pixelWidth" else h)
+PY
+    fi
+}
+
+resize() { # resize <size> <src> <out>
+    if command -v sips >/dev/null 2>&1; then
+        sips -s format png -z "$1" "$1" "$2" --out "$3" >/dev/null
+    elif command -v convert >/dev/null 2>&1; then
+        convert "$2" -resize "${1}x${1}!" "PNG32:$3"
+    else
+        python3 - "$1" "$2" "$3" <<'PY'
+import sys
+from PIL import Image
+im = Image.open(sys.argv[2])
+im.convert("RGBA").resize((int(sys.argv[1]),) * 2, Image.LANCZOS).save(sys.argv[3], "PNG")
+PY
+    fi
+}
+
 build() {
     [ -d "$SRC_DIR" ] || { echo "[alt-icons] no $SRC_DIR"; return 0; }
     shopt -s nullglob
@@ -18,15 +52,33 @@ build() {
     shopt -u nullglob
     [ "${#sources[@]}" -gt 0 ] || { echo "[alt-icons] no sources"; return 0; }
 
+    local stems=" " src name spec out size w h
     for src in "${sources[@]}"; do
-        local name; name="$(basename "$src")"; name="${name%.*}"
-        for spec in "@2x:120" "@3x:180" "@2x~ipad:152" "~ipad:76"; do
-            local out="$ICON_DIR/${name}${spec%:*}.png"
-            [ -f "$out" ] && [ "$out" -nt "$src" ] && continue
-            sips -s format png -z "${spec#*:}" "${spec#*:}" "$src" --out "$out" >/dev/null
+        name="$(basename "$src")"; name="${name%.*}"
+        stems="$stems$name "
+        for spec in "@2x:120" "@3x:180" "@2x~ipad:152" "~ipad:76" ":120"; do
+            out="$ICON_DIR/${name}${spec%:*}.png"
+            size="${spec#*:}"
+            rm -f "$out"
+            resize "$size" "$src" "$out"
+            w="$(px pixelWidth "$out")"; h="$(px pixelHeight "$out")"
+            if [ "$w" != "$size" ] || [ "$h" != "$size" ]; then
+                echo "[alt-icons] bad size for $(basename "$out"): ${w}x${h}, expected ${size}x${size}" >&2
+                exit 1
+            fi
         done
         echo "[alt-icons] built $name"
     done
+
+    # Drop leftovers that have no source (e.g. misnamed files) so they can't be registered.
+    local f base stem
+    shopt -s nullglob
+    for f in "$ICON_DIR"/*.png; do
+        base="$(basename "$f" .png)"
+        stem="${base%%@*}"; stem="${stem%%~*}"
+        case "$stems" in *" $stem "*) ;; *) rm -f "$f"; echo "[alt-icons] removed orphan $(basename "$f")";; esac
+    done
+    shopt -u nullglob
 }
 
 icon_names() {

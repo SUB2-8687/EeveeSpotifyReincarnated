@@ -80,6 +80,10 @@ fi
 rm -rf Payload
 cd - >/dev/null
 
+color "6/7+ strip non-en/ko language packs"
+chmod +x Tools/strip-lproj.sh
+Tools/strip-lproj.sh "$OUT_IPA"
+
 color "7/7  stage alternate app icons"
 # Copies Assets/AppIcon/*.png into Spotify.app and registers each stem under
 # CFBundleIcons/CFBundleAlternateIcons in its Info.plist, which is what
