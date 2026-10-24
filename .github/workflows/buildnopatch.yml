@@ -183,6 +183,12 @@ jobs:
           zip -qry "$(basename "$OUT_IPA")" Payload
           rm -rf Payload
           
+      - name: Strip non-en/ko language packs
+        if: ${{ inputs.ipa_url != '' }}
+        run: |
+          chmod +x Tools/strip-lproj.sh
+          Tools/strip-lproj.sh "$OUT_IPA"
+
       - name: Stage alternate app icons
         if: ${{ inputs.ipa_url != '' }}
         run: |

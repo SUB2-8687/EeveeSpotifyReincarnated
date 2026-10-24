@@ -136,6 +136,11 @@ jobs:
           zip -qry "$(basename "$OUT_IPA")" Payload
           rm -rf Payload
 
+      - name: Strip non-en/ko language packs
+        run: |
+          chmod +x Tools/strip-lproj.sh
+          Tools/strip-lproj.sh "$OUT_IPA"
+
       - name: Create Patched Duplicate & LC-inject zxPluginsInject
         run: |
           PATCHED_OUT="${OUT_IPA%.ipa}-patched.ipa"
