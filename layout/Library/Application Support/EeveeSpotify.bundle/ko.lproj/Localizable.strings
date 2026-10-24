@@ -17,15 +17,15 @@ update_available = "업데이트 사용 가능";
 
 // Patching
 
-do_not_patch_premium = "프리미엄 패치 안 함";
+do_not_patch_premium = "Premium 패치 안 함";
 patching_description = "EeveeSpotify는 사용자 데이터를 불러오는 요청을 가로채 역직렬화한 뒤, 매개변수를 실시간으로 수정합니다.
 
-활성화된 프리미엄 구독이 있다면 '프리미엄 패치 안 함'을 켤 수 있습니다. 이 경우 트윅이 데이터를 패치하거나 프리미엄 서버 측 기능의 사용을 제한하지 않습니다.
+활성화된 Premium 구독이 있다면 'Premium 패치 안 함'을 켤 수 있습니다. 이 경우 트윅이 데이터를 패치하거나 Premium 서버 측 기능의 사용을 제한하지 않습니다.
 
 %@";
 
 overwrite_configuration = "구성 덮어쓰기";
-overwrite_configuration_description = "원격 구성을 덤프된 프리미엄 구성으로 교체합니다. 이 구성은 대부분의 UI/UX 매개변수를 정의하므로 도움이 될 수 있지만, 문제가 생길 수도 있습니다.";
+overwrite_configuration_description = "원격 구성을 덤프된 Premium 구성으로 교체합니다. 이 구성은 대부분의 UI/UX 매개변수를 정의하므로 도움이 될 수 있지만, 문제가 생길 수도 있습니다.";
 
 // Lyrics
 
@@ -74,7 +74,7 @@ dark_popups = "다크 팝업";
 
 /* MARK: Premium PopUps */
 
-have_premium_popup = "활성화된 프리미엄 구독이 있는 것으로 보여, 트윅이 데이터를 패치하거나 프리미엄 서버 측 기능의 사용을 제한하지 않습니다. 이 동작은 EeveeSpotify 설정에서 관리할 수 있습니다.";
+have_premium_popup = "활성화된 Premium 구독이 있는 것으로 보여, 트윅이 데이터를 패치하거나 Premium 서버 측 기능의 사용을 제한하지 않습니다. 이 동작은 EeveeSpotify 설정에서 관리할 수 있습니다.";
 
 high_audio_quality_popup = "초고음질은 서버 측 기능이라 이 트윅에서는 사용할 수 없습니다.";
 playlist_downloading_popup = "플레이리스트 기본 다운로드는 서버 측 기능이라 이 트윅에서는 사용할 수 없습니다. 다만 팟캐스트 에피소드와 로컬 플레이리스트는 다운로드할 수 있습니다.";
@@ -134,7 +134,7 @@ tab_bar_editor_hint = "탭을 누르면 실행 시 해당 탭이 열립니다. �
 settings_group_listening = "듣기";
 settings_group_looks = "모양";
 settings_group_advanced = "고급";
-patching_subtitle = "프리미엄 패치";
+patching_subtitle = "Premium 패치";
 lyrics_subtitle = "소스 및 표시";
 sponsorblock_subtitle = "팟캐스트 구간 건너뛰기";
 customization_subtitle = "가사 색상 및 팝업";
@@ -367,7 +367,7 @@ lrclib_api = "서버 주소";
 ad_free_music_listening = "광고 없는 음악 감상";
 play_songs_in_any_order = "원하는 순서로 곡 재생";
 organize_listening_queue = "재생 대기열 정리";
-payment_notice = "EeveeSpotify는 일부 프리미엄 기능을 잠금 해제하는 패치를 적용합니다. 무료입니다.";
+payment_notice = "EeveeSpotify는 일부 Premium 기능을 잠금 해제하는 패치를 적용합니다. 무료입니다.";
 debug_title = "디버그";
 export_debug_log = "디버그 로그 내보내기";
 clear_debug_log = "디버그 로그 지우기";
