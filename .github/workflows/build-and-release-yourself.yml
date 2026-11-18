@@ -116,7 +116,7 @@ jobs:
           [ -e "$EXT_SRC" ] || { echo "OpenSpotifySafariExtension.appex not found in repo" >&2; exit 1; }
           echo "OPENSPOTIFY_APPEX=$EXT_SRC" >> $GITHUB_ENV
 
-      - name: Inject OpeninSafariSpotify into base IPA & strip Watch app
+      - name: Inject OpeninSafariSpotify into base IPA
         run: |
           cd "$(dirname "$OUT_IPA")"
           rm -rf Payload
@@ -126,15 +126,13 @@ jobs:
           rm -rf "Payload/Spotify.app/PlugIns/OpenSpotifySafariExtension.appex"
           cp -R "$OPENSPOTIFY_APPEX" "Payload/Spotify.app/PlugIns/OpenSpotifySafariExtension.appex"
           
-          if [ -d "Payload/Spotify.app/com.apple.WatchPlaceholder" ]; then
-            rm -rf Payload/Spotify.app/com.apple.WatchPlaceholder
-          fi
-          if [ -d "Payload/Spotify.app/Watch" ]; then
-            rm -rf Payload/Spotify.app/Watch
-          fi
-          
           zip -qry "$(basename "$OUT_IPA")" Payload
           rm -rf Payload
+
+      - name: Strip non-en/ko language packs
+        run: |
+          chmod +x Tools/strip-lproj.sh
+          Tools/strip-lproj.sh "$OUT_IPA"
 
       - name: Create Patched Duplicate & LC-inject zxPluginsInject
         run: |
