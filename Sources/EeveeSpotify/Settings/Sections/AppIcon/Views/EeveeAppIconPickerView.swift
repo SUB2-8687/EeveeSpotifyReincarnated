@@ -117,15 +117,12 @@ struct EeveeAppIconPickerView: View {
         for key in alternates.keys.sorted(by: { $0.localizedCaseInsensitiveCompare($1) == .orderedAscending }) {
             let info = alternates[key] as? [String: Any]
             let files = info?["CFBundleIconFiles"] as? [String] ?? [key]
-            // Use the plist key as the display title but convert underscores,
-            // hyphens, camelCase boundaries, and parentheses to readable spaces.
+            // The plist key is the display title (prettified when enabled).
             let displayTitle = Self.prettifyIconKey(key, prettify: prettifyNames)
-            // Use the first CFBundleIconFiles entry as the alternateName passed to
-            // setAlternateIconName. iOS resolves icons by the plist key — but on
-            // sideloaded/jailbroken builds, keys with spaces or parentheses can fail.
-            // Using the actual icon filename stem is a reliable fallback; if files is
-            // empty we fall back to the raw key.
-            let alternateName = files.first ?? key
+            // iOS resolves setAlternateIconName by the CFBundleAlternateIcons *key*,
+            // not by the icon file name, so the key must be what we pass. Passing a
+            // file stem makes iOS fail with "The file doesn't exist".
+            let alternateName = key
             entries.append(AppIconEntry(id: key, title: displayTitle, alternateName: alternateName, iconFiles: files))
         }
         icons = entries
@@ -152,14 +149,39 @@ struct EeveeAppIconPickerView: View {
         selectedKey = icon.id
         UserDefaults.standard.set(icon.id, forKey: selectedKeyDefault)
 
-        UIApplication.shared.setAlternateIconName(icon.alternateName) { error in
+        let candidates = Self.nameCandidates(for: icon)
+        Self.setAlternateIcon(candidates: candidates) { error in
             DispatchQueue.main.async {
                 guard let error = error else { return }
                 eeveeLog("[EeveeSpotify][AppIcon] setAlternateIconName(%@) failed: %@",
-                      icon.alternateName ?? "nil", error.localizedDescription)
+                         icon.alternateName ?? "nil", error.localizedDescription)
                 selectedKey = previous
                 UserDefaults.standard.set(previous, forKey: selectedKeyDefault)
                 errorMessage = error.localizedDescription
+            }
+        }
+    }
+
+    /// Names to try, in order. Default icon is always `nil`. Other icons try the
+    /// plist key first, then the icon file stems as a fallback for hosts
+    /// (e.g. re-signed / container-launched builds) that resolve by file name.
+    private static func nameCandidates(for icon: AppIconEntry) -> [String?] {
+        guard let primary = icon.alternateName else { return [nil] }
+        var result: [String?] = [primary]
+        for stem in icon.iconFiles where stem != primary {
+            result.append(stem)
+        }
+        return result
+    }
+
+    private static func setAlternateIcon(candidates: [String?],
+                                         completion: @escaping (Error?) -> Void) {
+        guard let name = candidates.first else { completion(nil); return }
+        UIApplication.shared.setAlternateIconName(name) { error in
+            if error != nil, candidates.count > 1 {
+                setAlternateIcon(candidates: Array(candidates.dropFirst()), completion: completion)
+            } else {
+                completion(error)
             }
         }
     }
